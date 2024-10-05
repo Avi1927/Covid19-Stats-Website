@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import './App.css';
 
@@ -34,6 +34,20 @@ const App = () => {
         fetchCountries();
     }, []);
 
+    // Fetch statistics for the selected country and date
+    const fetchStatistics = useCallback(async (date) => {
+        try {
+            const response = await axios.get(`https://covid-193.p.rapidapi.com/history?country=${selectedCountry}&day=${date}`, {
+                headers: {
+                    'X-RapidAPI-Key': 'c994f4b868msh5dc8b51945e63c2p1d6729jsnaded16128cf2',
+                },
+            });
+            setStats(response.data.response);
+        } catch (error) {
+            console.error('Error fetching statistics:', error);
+        }
+    }, [selectedCountry]);  // Memoize the function, dependency is `selectedCountry`
+
     // Fetch dates when the selected country changes (initially India)
     useEffect(() => {
         if (selectedCountry) {
@@ -58,21 +72,7 @@ const App = () => {
 
             fetchDates();
         }
-    }, [selectedCountry]);
-
-    // Fetch statistics for the selected country and date
-    const fetchStatistics = async (date) => {
-        try {
-            const response = await axios.get(`https://covid-193.p.rapidapi.com/history?country=${selectedCountry}&day=${date}`, {
-                headers: {
-                    'X-RapidAPI-Key': 'c994f4b868msh5dc8b51945e63c2p1d6729jsnaded16128cf2',
-                },
-            });
-            setStats(response.data.response);
-        } catch (error) {
-            console.error('Error fetching statistics:', error);
-        }
-    };
+    }, [selectedCountry, fetchStatistics]);  // Include `fetchStatistics` in dependency array
 
     const handleCountryChange = (e) => {
         setSelectedCountry(e.target.value);
